@@ -1,0 +1,73 @@
+old_sound_rabbit_mq:
+  connections:
+    default:
+      host: '%env(resolve:RABBITMQ_HOST)%'
+      port: '%env(resolve:RABBITMQ_PORT)%'
+      user: '%env(resolve:RABBITMQ_USER)%'
+      password: '%env(resolve:RABBITMQ_PASSWORD)%'
+      vhost: '%env(resolve:RABBITMQ_VHOST)%'
+      lazy: true
+      connection_timeout: 60
+      read_write_timeout: 60
+      keepalive: true
+      heartbeat: 0
+      use_socket: false
+
+
+  producers:
+    process_sms_notification:
+      connection: default
+      exchange_options:
+        name: 'process_sms_notification'
+        type: 'x-delayed-message'
+        passive: false
+        durable: true
+        auto_delete: false
+        internal: false
+        nowait: false
+        declare: true
+        ticket: null
+        arguments:
+          x-delayed-type: [ 'S', 'direct' ]
+          x-max-length: [ 'I', '1000000' ]
+      queue_options:
+        name: 'process_sms_notification'
+        passive: false
+        durable: true
+        exclusive: false
+        auto_delete: false
+        nowait: false
+        declare: true
+        ticket: null
+        arguments:
+          x-delayed-type: [ 'S', 'direct' ]
+          x-max-length: [ 'I', '1000000' ]
+
+  consumers:
+    process_sms_notification:
+      connection: default
+      exchange_options:
+        name: 'process_sms_notification'
+        type: 'x-delayed-message'
+        passive: false
+        durable: true
+        auto_delete: false
+        internal: false
+        nowait: false
+        declare: true
+        ticket: null
+        arguments:
+          x-delayed-type: [ 'S', 'direct' ]
+          x-max-length: [ 'I', '1000000' ]
+      queue_options:
+        name: 'process_sms_notification'
+        arguments:
+          x-max-length: [ 'I', '1000000' ]
+      callback: process_sms_notification_consumer
+      qos_options:
+        prefetch_size: 0
+        prefetch_count: 1
+        global: false
+      graceful_max_execution:
+        timeout: 1800
+        exit_code: 0
